@@ -36,7 +36,6 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
      w_gauss_mu, &
      w_gauss_ck, &
      photon_destruct_in, &
-     contribution, &
      surf_refl, &
      surf_emi, &
      I_star_0, &
@@ -63,13 +62,12 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
   DOUBLE PRECISION, INTENT(IN)    :: mu(N_mu)
   DOUBLE PRECISION, INTENT(IN)    :: w_gauss_mu(N_mu), w_gauss_ck(N_g)
   DOUBLE PRECISION, INTENT(IN)    :: photon_destruct_in(N_g,freq_len_p_1-1,struc_len)
-  LOGICAL, INTENT(IN)             :: contribution
   DOUBLE PRECISION, INTENT(OUT)   :: flux(freq_len_p_1-1)
   CHARACTER*20, intent(in)        :: geom
-  DOUBLE PRECISION                :: I_GCM(N_mu,freq_len_p_1-1)
+  DOUBLE PRECISION, INTENT(OUT)   :: I_GCM(N_mu,freq_len_p_1-1)
 
   ! Internal
-  INTEGER                         :: j,i,k,l
+  INTEGER                         :: j,i,k,l, i_mu
   DOUBLE PRECISION                :: I_J(struc_len,N_mu), I_H(struc_len,N_mu)
   DOUBLE PRECISION                :: source(N_g,freq_len_p_1-1,struc_len), &
        J_planet_scat(N_g,freq_len_p_1-1,struc_len), &
@@ -111,14 +109,14 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
   DOUBLE PRECISION   d_source
 
 
-  max_rel_delta_source = 1d-2
+  max_rel_delta_source = 2d-2
 
   I_plus_surface = 0d0
   I_minus = 0d0
   ! END PAUL NEW
 
   GCM_read = .TRUE.
-  iter_scat = 500
+  iter_scat = 10
   source = 0d0
 
   source_planet_scat_n = 0d0

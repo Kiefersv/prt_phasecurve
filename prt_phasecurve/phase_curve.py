@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.interpolate import RBFInterpolator
 
-
-def wrap_phase_curve(phases, lon, lat, mus, intensity):
+def phase_curve(phases, lon, lat, mus, intensity):
     """
     Function to wrap around the phasecurve calculation.
 
@@ -16,8 +15,8 @@ def wrap_phase_curve(phases, lon, lat, mus, intensity):
         Longitude coordinate values. If input is 1D we assume that it has been flattened.
     mus (array(D)):
         List of mus matching the mus of the calculated intensity
-    intensity (array(M1,M2,N,D) or array(M1*M2,N,D)):
-        array of intensitities. The order needs to be  Horizontal (1D or 2D), Wavelength, mu
+    intensity (array(M1,M2,D,N) or array(M1*M2,D,N)):
+        array of intensitities. The order needs to be  Horizontal (1D or 2D), mu, Wavelength
 
     Returns
     -------
@@ -110,7 +109,7 @@ def calc_phase_curve(phase, mus, mu_rad_bas):
     M = np.matrix([[0, 0, 1], [0, 1, 0], [-1, 0, 0]])
     M = M.dot([[1,0,0], [0, np.cos(rot), -np.sin(rot)], [0, np.sin(rot), np.cos(rot)]])
 
-    Nlambda = len(mu_rad_bas([[0,0,0]])[0])
+    Nlambda = len(mu_rad_bas([[0,0,0]])[:,0])
     flux_arr = np.zeros(Nlambda)
 
     for iphi in range(len(phi_p_mean)):
@@ -125,12 +124,12 @@ def calc_phase_curve(phase, mus, mu_rad_bas):
             interp = mu_rad_bas(point)
 
             if do_intp[itheta]:
-                I_small = interp[0,:,i_intps[itheta]]
-                I_large = interp[0,:,i_intps[itheta]+1]
+                I_small = interp[0,i_intps[itheta],:]
+                I_large = interp[0,i_intps[itheta]+1,:]
                 I_use = I_small+(I_large-I_small)/(mus[i_intps[itheta]+1]-mus[i_intps[itheta]])* \
                   (mu_p_mean[itheta]-mus[i_intps[itheta]])
             else:
-                I_use = interp[0,:,i_intps[itheta]]
+                I_use = interp[0,i_intps[itheta],:]
 
             dF = I_use * mu_p_mean[itheta] * del_mu_p[itheta] * del_phi_p[iphi]
             flux_arr = flux_arr + dF
@@ -177,11 +176,11 @@ if __name__ == "__main__":
     mus = np.linspace(-1, 1, 20)
     N = 10
     total_intensity = (np.cos(lon / 180 * np.pi) * np.cos(lat / 180 * np.pi))[:,:,np.newaxis, np.newaxis]
-    total_intensity = np.ones((lon.shape[0],lon.shape[1], N, len(mus))) * total_intensity
+    total_intensity = np.ones((lon.shape[0],lon.shape[1], len(mus), N)) * total_intensity
 
     phases = np.linspace(0,1,11)
 
-    phase_curve = wrap_phase_curve(phases, lon, lat, mus, total_intensity)
+    phase_curve = phase_curve(phases, lon, lat, mus, total_intensity)
 
     plt.plot(phases, phase_curve[:,0])
     plt.show()
