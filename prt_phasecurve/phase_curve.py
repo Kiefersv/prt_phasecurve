@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.interpolate import RBFInterpolator
+from .mu import mu
 
-def phase_curve(phases, lon, lat, mus, intensity):
+def phase_curve(phases, lon, lat, intensity):
     """
     Function to wrap around the phasecurve calculation.
 
@@ -23,6 +24,10 @@ def phase_curve(phases, lon, lat, mus, intensity):
     phase_curve (array (P,N)):
         Array containing the calculated phasecurve. First Dimension is the Phase, second Dimension is the Wavelength
     """
+
+    lon = np.array(lon)
+    lat = np.array(lat)
+    intensity = np.array(intensity)
 
     # Format input data:
     if len(lon.shape) == 2:
@@ -57,7 +62,7 @@ def phase_curve(phases, lon, lat, mus, intensity):
     mu_rad_bas = RBFInterpolator(np.array([x, y, z]).T, _intensity, smoothing=0.1)
 
     # Carry out the phasecurve calculation:
-    phase_curve = np.array([calc_phase_curve(phase, mus, mu_rad_bas) for phase in phases])
+    phase_curve = np.array([calc_phase_curve(phase, mu, mu_rad_bas) for phase in phases])
 
     return phase_curve
 
@@ -109,7 +114,7 @@ def calc_phase_curve(phase, mus, mu_rad_bas):
     M = np.matrix([[0, 0, 1], [0, 1, 0], [-1, 0, 0]])
     M = M.dot([[1,0,0], [0, np.cos(rot), -np.sin(rot)], [0, np.sin(rot), np.cos(rot)]])
 
-    Nlambda = len(mu_rad_bas([[0,0,0]])[:,0])
+    Nlambda = len(mu_rad_bas([[0,0,0]])[0,0,:])
     flux_arr = np.zeros(Nlambda)
 
     for iphi in range(len(phi_p_mean)):
@@ -121,15 +126,15 @@ def calc_phase_curve(phase, mus, mu_rad_bas):
             R = M.dot(np.matrix([[x_p],[y_p],[z_p]]))
 
             point = np.array([R[0],R[1],R[2]]).reshape(1,3)
-            interp = mu_rad_bas(point)
+            interp = mu_rad_bas(point).reshape(len(mus), Nlambda)
 
             if do_intp[itheta]:
-                I_small = interp[0,i_intps[itheta],:]
-                I_large = interp[0,i_intps[itheta]+1,:]
+                I_small = interp[i_intps[itheta],:]
+                I_large = interp[i_intps[itheta]+1,:]
                 I_use = I_small+(I_large-I_small)/(mus[i_intps[itheta]+1]-mus[i_intps[itheta]])* \
                   (mu_p_mean[itheta]-mus[i_intps[itheta]])
             else:
-                I_use = interp[0,i_intps[itheta],:]
+                I_use = interp[i_intps[itheta],:]
 
             dF = I_use * mu_p_mean[itheta] * del_mu_p[itheta] * del_phi_p[iphi]
             flux_arr = flux_arr + dF
@@ -175,12 +180,13 @@ if __name__ == "__main__":
 
     mus = np.linspace(-1, 1, 20)
     N = 10
-    total_intensity = (np.cos(lon / 180 * np.pi) * np.cos(lat / 180 * np.pi))[:,:,np.newaxis, np.newaxis]
-    total_intensity = np.ones((lon.shape[0],lon.shape[1], len(mus), N)) * total_intensity
+    # total_intensity = (np.cos(lon / 180 * np.pi) * np.cos(lat / 180 * np.pi))[:,:,np.newaxis, np.newaxis]
+    # total_intensity = np.ones((lon.shape[0],lon.shape[1], len(mus), N)) * total_intensity
+
 
     phases = np.linspace(0,1,11)
 
-    phase_curve = phase_curve(phases, lon, lat, mus, total_intensity)
+    phase_curve = phase_curve(phases, lon, lat, total_intensity)
 
     plt.plot(phases, phase_curve[:,0])
     plt.show()

@@ -21,7 +21,7 @@ setup(
     version='v0.1',
     packages=setuptools.find_packages(),
     include_package_data=True,
-    url='https://github.com/exorad/prt_phasecurve',
+    url='https://github.com/AaronDavidSchneider/prt_phasecurve',
     license='MIT',
     author='Aaron David Schneider',
     author_email='aarondavid.schneider@nbi.ku.dk',
