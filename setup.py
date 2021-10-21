@@ -18,7 +18,7 @@ fort_spec = Extension('prt_phasecurve.fort_spec', sources=['prt_phasecurve/fort_
 
 setup(
     name='prt_phasecurve',
-    version='v0.1.2',
+    version='v0.1.3',
     packages=setuptools.find_packages(),
     include_package_data=True,
     url='https://github.com/AaronDavidSchneider/prt_phasecurve',
