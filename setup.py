@@ -33,5 +33,6 @@ setup(
         "scipy>=1.7.0",
         "numpy",
         "petitRADTRANS>=2.2.1",
+        "tqdm"
     ]
 )

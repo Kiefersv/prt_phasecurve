@@ -2,7 +2,7 @@ import numpy as np
 from petitRADTRANS import Radtrans
 from . import mu, w_mu
 from . import fort_spec as fs
-
+from tqdm import tqdm
 
 def calc_spectra(self: Radtrans, temp, abunds, gravity, mmw, sigma_lnorm=None, \
               fsed=None, Kzz=None, radius=None, \
@@ -98,13 +98,14 @@ def calc_spectra(self: Radtrans, temp, abunds, gravity, mmw, sigma_lnorm=None, \
     self.get_star_spectrum(Tstar, semimajoraxis, Rstar)
 
     spectra = []
-    for theta_star_i, abunds_i, temp_i in zip(theta_star, abunds, temp):
-        self.mu_star = np.cos(theta_star_i * np.pi / 180.)
+    N_comp = len(theta_star)
+    for i in tqdm(range(N_comp)):
+        self.mu_star = np.cos(theta_star[i] * np.pi / 180.)
 
         if self.mu_star <= 0.:
             self.mu_star = 1e-8
-        self.interpolate_species_opa(temp_i)
-        self.mix_opa_tot(abunds_i, mmw, gravity, sigma_lnorm, fsed, Kzz, radius, \
+        self.interpolate_species_opa(temp[i])
+        self.mix_opa_tot(abunds[i], mmw, gravity, sigma_lnorm, fsed, Kzz, radius, \
                          add_cloud_scat_as_abs=add_cloud_scat_as_abs)
 
         self.calc_opt_depth(gravity)

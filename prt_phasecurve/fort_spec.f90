@@ -116,7 +116,7 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
   ! END PAUL NEW
 
   GCM_read = .TRUE.
-  iter_scat = 10
+  iter_scat = 100
   source = 0d0
 
   source_planet_scat_n = 0d0
