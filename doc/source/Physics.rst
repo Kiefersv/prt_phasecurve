@@ -24,7 +24,7 @@ where :math:`\mu` is the cosine of the angle between the the atmospheric normal 
    :height: 200px
    :align: center
 
-   Geometry of the disk integrated spectrum from the perspective of the observer. :math:`\mu` and :math:`\phi` are the coordinates of the integration.
+   Geometry of the disk integrated spectrum from the perspective of the observer. :math:`\mu` and :math:`\varphi` are the coordinates of the integration.
 
 The integral is then carried out as an integration of the intensity field along all contributing annuli of constant :math:`\mu` (see Figure above). The observer rotates around the sphere in order to catch the phase dependence. This is numerically realised by a rotation of the intensityfield around the sphere.
 

@@ -2,6 +2,8 @@
 
 Bulding phasecurves of exoplanetary atmospheres using petitradtrans
 
+**Documentation:** https://prt-phasecurve.readthedocs.io
+
 ## Install:
 
 ```
@@ -19,5 +21,3 @@ Calculate the spectra of the (lowres) GCM output:
 ```
 calc_spectra()
 ```
-
-TODO: Add more information here
