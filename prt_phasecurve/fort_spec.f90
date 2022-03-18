@@ -95,6 +95,8 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
   ! control
   DOUBLE PRECISION                :: inv_del_tau_min
   INTEGER                         :: iter_scat, i_iter_scat
+  DOUBLE PRECISION                :: conv_val
+  DOUBLE PRECISION                :: I_GCM_OLD(N_mu,freq_len_p_1-1)
 
   ! GCM spec calc
   LOGICAL                         :: GCM_read
@@ -104,20 +106,19 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
   DOUBLE PRECISION                :: I_plus_surface(N_mu, N_g, freq_len_p_1-1)
 
     ! Source convergence
-  LOGICAL convergence_flag
-  DOUBLE PRECISION  max_rel_delta_source
-  DOUBLE PRECISION   d_source
 
 
-  max_rel_delta_source = 2d-2
 
   I_plus_surface = 0d0
   I_minus = 0d0
   ! END PAUL NEW
 
   GCM_read = .TRUE.
-  iter_scat = 100
+  iter_scat = 1000
   source = 0d0
+  I_GCM = 0d0
+  I_GCM_OLD = 0d0
+
 
   source_planet_scat_n = 0d0
   source_planet_scat_n1 = 0d0
@@ -151,8 +152,7 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
    end do
   end do
 
-
-  do while (.not. convergence_flag)
+  main_loop: do i_iter_scat = 1, iter_scat
 
     !write(*,*) 'i_iter_scat', i_iter_scat
 
@@ -162,8 +162,8 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
 
     inv_del_tau_min = 1d10
     J_bol(1) = 0d0
+    I_GCM_OLD = I_GCM
     I_GCM = 0d0
-
     do i = 1, freq_len_p_1-1
 
        flux(i) = 0d0
@@ -370,6 +370,11 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
        end do
     end do
 
+    conv_val = MAXVAL(ABS((I_GCM-I_GCM_old)/I_GCM))
+    if ((conv_val < 1d-3) .AND. (i_iter_scat > 9)) then
+        exit main_loop
+    end if
+
     source_planet_scat_n3 = source_planet_scat_n2
     source_planet_scat_n2 = source_planet_scat_n1
     source_planet_scat_n1 = source_planet_scat_n
@@ -381,27 +386,7 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
             source_planet_scat_n2,source_planet_scat_n3,source, &
             N_g,freq_len_p_1,struc_len)
     end if
-    if (i_iter_scat > 2 .and. i_iter_scat < iter_scat) then
-        convergence_flag = .TRUE.
-        gloop: do l = 1, N_g
-            do i = 1, freq_len_p_1 -1
-                do k = 1, struc_len
-                    d_source = abs((source_planet_scat_n1(l,i,k)-source_planet_scat_n(l,i,k))/source(l,i,k))
-                    !                        Convergence if relative change smaller then 1/lambda
-                    if (d_source .GT. (max_rel_delta_source / abs(lambda_loc(l,i,k)))) then
-
-                        convergence_flag = .FALSE.
-                        exit gloop
-                    end if
-                end do
-            end do
-        end do gloop
-    elseif (i_iter_scat > iter_scat) then
-        write(*,*) "We have reached the maximum numbers of iterations but could not converge the source function. Stopping now."
-        convergence_flag = .TRUE.
-    end if
-    i_iter_scat = i_iter_scat + 1
-  end do !End scattering loop
+  end do main_loop !End scattering loop
 
 end subroutine feautrier_rad_trans_phase_curve
 
