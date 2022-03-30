@@ -2,6 +2,7 @@ import numpy as np
 from scipy.interpolate import RBFInterpolator
 from .mu import mu
 
+
 def phase_curve(phases, lon, lat, intensity):
     """
     Function to wrap around the phasecurve calculation.
@@ -110,7 +111,7 @@ def calc_phase_curve(phase, mus, mu_rad_bas):
                 do_intp.append(True)
                 i_intps.append(jmu)
 
-    rot = - phase * 2*np.pi
+    rot = phase * 2*np.pi
     M = np.matrix([[0, 0, 1], [0, 1, 0], [-1, 0, 0]])
     M = M.dot([[1,0,0], [0, np.cos(rot), -np.sin(rot)], [0, np.sin(rot), np.cos(rot)]])
 
@@ -140,55 +141,5 @@ def calc_phase_curve(phase, mus, mu_rad_bas):
             flux_arr = flux_arr + dF
 
     return flux_arr
-
-
-def compute_phase_curve(Radtrans, data, phases = np.linspace(0,1,11)):
-    """
-    Function that calculates the phase curve for
-
-    Parameters
-    ----------
-    Radtrans (petitRADTRANS.Radtrans like):
-        intitialised Radtrans object to be used to calculate the individual emission spectra
-    data (xarray.Dataset):
-        containing abundancies, containing temperatures, containing lons and lats
-    phases (1D list or array):
-        Phases for which the phase_curve is calculated
-
-    Returns
-    -------
-
-    Ideas:
-    1. Script to be called from commandline? Input would be the iternumber. Could be quite useful for the cluster
-
-    Plan:
-    1. Compute emission spectrum for each gridcell
-    2. SAVE GLOBAL EMISSION SPECTRUM
-    3. Compute the Phasecurve for each gridcell
-    4. Save global EMISSION SPECTRUM
-
-    """
-    raise NotImplementedError('TODO')
-
-
-if __name__ == "__main__":
-    # TODO: remove later on
-    import matplotlib.pyplot as plt
-    lons = np.linspace(-180, 180, 31)
-    lats = np.linspace(-90, 90, 11)
-    lon, lat = np.meshgrid(lons, lats)
-
-    mus = np.linspace(-1, 1, 20)
-    N = 10
-    # total_intensity = (np.cos(lon / 180 * np.pi) * np.cos(lat / 180 * np.pi))[:,:,np.newaxis, np.newaxis]
-    # total_intensity = np.ones((lon.shape[0],lon.shape[1], len(mus), N)) * total_intensity
-
-
-    phases = np.linspace(0,1,11)
-
-    phase_curve = phase_curve(phases, lon, lat, total_intensity)
-
-    plt.plot(phases, phase_curve[:,0])
-    plt.show()
 
 
