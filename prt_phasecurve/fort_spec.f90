@@ -41,6 +41,7 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
      I_star_0, &
      geom, &
      mu_star, &
+     do_scat, &
      flux, &
      I_GCM, &
      freq_len_p_1, &
@@ -62,6 +63,7 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
   DOUBLE PRECISION, INTENT(IN)    :: mu(N_mu)
   DOUBLE PRECISION, INTENT(IN)    :: w_gauss_mu(N_mu), w_gauss_ck(N_g)
   DOUBLE PRECISION, INTENT(IN)    :: photon_destruct_in(N_g,freq_len_p_1-1,struc_len)
+  LOGICAL, INTENT(IN)             :: do_scat
   DOUBLE PRECISION, INTENT(OUT)   :: flux(freq_len_p_1-1)
   CHARACTER*20, intent(in)        :: geom
   DOUBLE PRECISION, INTENT(OUT)   :: I_GCM(N_mu,freq_len_p_1-1)
@@ -115,6 +117,9 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
 
   GCM_read = .TRUE.
   iter_scat = 1000
+  if (.not. do_scat) then
+      iter_scat = 1
+  end if
   source = 0d0
   I_GCM = 0d0
   I_GCM_OLD = 0d0
@@ -177,7 +182,11 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
        do l = 1, N_g
 
           if (i_iter_scat .EQ. 1) then
-             source(l,i,:) = photon_destruct(l,i,:)*r +  (1d0-photon_destruct(l,i,:))*J_star_ini(l,i,:)
+              if (do_scat) then
+                source(l,i,:) = photon_destruct(l,i,:)*r +  (1d0-photon_destruct(l,i,:))*J_star_ini(l,i,:)
+              else
+                source(l,i,:) = r
+              end if
           else
              r = source(l,i,:)
 
@@ -363,11 +372,13 @@ subroutine feautrier_rad_trans_phase_curve(border_freqs, &
 
     do i = 1, freq_len_p_1-1
        call planck_f_lr(struc_len,temp(1:struc_len),border_freqs(i),border_freqs(i+1),r)
-       do l = 1, N_g
-         source(l,i,:) = (photon_destruct(l,i,:)*r+(1d0-photon_destruct(l,i,:))* &
-               (J_star_ini(l,i,:)+J_planet_scat(l,i,:)-lambda_loc(l,i,:)*source(l,i,:))) / &
-               (1d0-(1d0-photon_destruct(l,i,:))*lambda_loc(l,i,:))
-       end do
+       if (do_scat) then
+           do l = 1, N_g
+             source(l,i,:) = (photon_destruct(l,i,:)*r+(1d0-photon_destruct(l,i,:))* &
+                   (J_star_ini(l,i,:)+J_planet_scat(l,i,:)-lambda_loc(l,i,:)*source(l,i,:))) / &
+                   (1d0-(1d0-photon_destruct(l,i,:))*lambda_loc(l,i,:))
+           end do
+       end if
     end do
 
     conv_val = MAXVAL(ABS((I_GCM-I_GCM_old)/I_GCM))

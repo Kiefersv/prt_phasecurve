@@ -118,23 +118,18 @@ def calc_spectra(self: Radtrans, temp, abunds, gravity, mmw, sigma_lnorm=None, \
 
 def calc_RT_phase(self: Radtrans):
     # Calculate the flux
+    _, I_GCM = fs.feautrier_rad_trans_phase_curve(self.border_freqs, \
+                                                      self.total_tau[:, :, 0, :], \
+                                                      self.temp, \
+                                                      mu, \
+                                                      w_mu, \
+                                                      self.w_gauss, \
+                                                      self.photon_destruction_prob, \
+                                                      self.reflectance, \
+                                                      self.emissivity, \
+                                                      self.stellar_intensity, \
+                                                      self.geometry, \
+                                                      self.mu_star,
+                                                      self.do_scat_emis)
 
-    if self.do_scat_emis:
-        # Only use 0 index for species because for lbl or test_ck_shuffle_comp = True
-        # everything has been moved into the 0th index
-        _, I_GCM = fs.feautrier_rad_trans_phase_curve(self.border_freqs, \
-                                                          self.total_tau[:, :, 0, :], \
-                                                          self.temp, \
-                                                          mu, \
-                                                          w_mu, \
-                                                          self.w_gauss, \
-                                                          self.photon_destruction_prob, \
-                                                          self.reflectance, \
-                                                          self.emissivity, \
-                                                          self.stellar_intensity, \
-                                                          self.geometry, \
-                                                          self.mu_star)
-
-        return I_GCM
-    else:
-        raise NotImplementedError('phase curve calculation is currently only valid with scattering')
+    return I_GCM
