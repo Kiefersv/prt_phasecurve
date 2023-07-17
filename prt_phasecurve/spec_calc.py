@@ -12,7 +12,8 @@ def calc_spectra(self: Radtrans, temp, abunds, gravity, mmw, sigma_lnorm=None, \
               add_cloud_scat_as_abs=None, \
               Tstar=None, Rstar=None, semimajoraxis=None, \
               geometry='non-isotropic', theta_star=0, \
-              hack_cloud_photospheric_tau=None):
+              hack_cloud_photospheric_tau=None,
+              cloud_structure=None):
     ''' Method to calculate the atmosphere's emitted intensity as a function of angles.
     Takes a list of temp, abunds and theta_star. All other input parameters are similar to pRTs calc_flux routine
 
@@ -83,6 +84,9 @@ def calc_spectra(self: Radtrans, temp, abunds, gravity, mmw, sigma_lnorm=None, \
                 Inclination angle of the direct light with respect to
                 the normal to the atmosphere. Used only in the
                 non-isotropic geometry scenario.
+            cloud_structure (Optional[float])
+            	Cloud structure to be added to the phase curve 
+            	calculation. Only works with within gcm_toolkit
     '''
 
     self.hack_cloud_photospheric_tau = hack_cloud_photospheric_tau
@@ -105,8 +109,13 @@ def calc_spectra(self: Radtrans, temp, abunds, gravity, mmw, sigma_lnorm=None, \
         if self.mu_star <= 0.:
             self.mu_star = 1e-8
         self.interpolate_species_opa(temp[i])
+
         self.mix_opa_tot(abunds[i], mmw, gravity, sigma_lnorm, fsed, Kzz, radius, \
                          add_cloud_scat_as_abs=add_cloud_scat_as_abs)
+
+        if cloud_structure is not None:
+            self.clouds_mix_opa(cloud_structure[i])
+            self.delete_clouds(cloud_structure[i])
 
         self.calc_opt_depth(gravity)
         I_GCM = calc_RT_phase(self)
